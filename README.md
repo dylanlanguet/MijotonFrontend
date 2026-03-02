@@ -19,8 +19,8 @@ Suivez ces étapes pour lancer le projet localement :
 
 ### 1. Cloner le projet
 ```bash
-git clone https://github.com/dylanlanguet/mijotons.git
-cd mijotons
+git clone https://github.com/dylanlanguet/MijotonFrontend.git
+cd mijoton
 ```
 
 ### 2. Créer un environnement virtuel
@@ -69,7 +69,6 @@ python manage.py runserver
 
 L'application sera accessible à l'adresse suivante : http://127.0.0.1:8000/
 ## 📂 Structure du projet
-- mijotons/ : Configuration principale du projet (settings, urls).
-- recettes/ : Application gérant la logique métier, les modèles et les vues.
+- mijoton/ : Configuration principale du projet (settings, urls).
+- recipes/ : Application gérant la logique métier, les modèles et les vues.
 - templates/ : Fichiers HTML (Django Templates).
-- static/ : Fichiers CSS, images et JavaScript.
