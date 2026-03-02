@@ -1,0 +1,52 @@
+{% extends 'recipes/base.html' %}
+
+{% block title %}Recherche - Mijotons{% endblock %}
+
+{% block content %}
+<h2>Rechercher une Recette</h2>
+
+<div class="card" style="padding: 1rem;">
+    <form method="get" action="{% url 'recherche' %}" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; background: none; padding: 0;">
+        <input type="text" name="q" placeholder="Rechercher par nom ou ingrédient..." value="{{ query|default:'' }}" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+        <select name="categorie" style="margin-bottom: 0; width: auto;">
+            <option value="">Toutes les catégories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if categorie_selected == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nom }}</option>
+            {% endfor %}
+        </select>
+        <select name="tri" style="margin-bottom: 0; width: auto;">
+            <option value="-created_at" {% if tri == '-created_at' %}selected{% endif %}>Plus récentes</option>
+            <option value="created_at" {% if tri == 'created_at' %}selected{% endif %}>Plus anciennes</option>
+            <option value="note" {% if tri == 'note' %}selected{% endif %}>Note</option>
+            <option value="temps" {% if tri == 'temps' %}selected{% endif %}>Temps croissant</option>
+            <option value="-temps" {% if tri == '-temps' %}selected{% endif %}>Temps décroissant</option>
+        </select>
+        <button type="submit" class="btn">Rechercher</button>
+    </form>
+</div>
+
+{% if query or categorie_selected %}
+    <h3>Résultats{% if query %} pour "{{ query }}"{% endif %}</h3>
+    
+    {% if recettes %}
+        <div class="recette-grid">
+            {% for recette in recettes %}
+                <div class="recette-card">
+                {% if recette.image %}
+                    <img src="{{ recette.image.url }}" alt="{{ recette.titre }}">
+                {% else %}
+                    <div style="width: 100%; height: 200px; background: #ddd; display: flex; align-items: center; justify-content: center; color: #666;">Pas d'image</div>
+                {% endif %}
+                    <div class="recette-card-content">
+                        <span class="badge">{{ recette.categorie.nom }}</span>
+                        <h3><a href="{% url 'detail_recette' recette.pk %}" style="color: #333; text-decoration: none;">{{ recette.titre }}</a></h3>
+                        <p>Temps: {{ recette.temps_preparation }} min</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Aucune recette ne correspond à votre recherche.</p>
+    {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'recipes/base.html' %}
+
+{% block title %}Modifier la Recette - Mijotons{% endblock %}
+
+{% block content %}
+<h2>Modifier la Recette</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <label for="titre">Titre</label>
+    <input type="text" id="titre" name="titre" value="{{ recette.titre }}" required>
+    
+    <label for="categorie">Catégorie</label>
+    <select id="categorie" name="categorie" required>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if cat.id == recette.categorie.id %}selected{% endif %}>{{ cat.nom }}</option>
+        {% endfor %}
+    </select>
+    
+    <label for="temps_preparation">Temps de préparation (minutes)</label>
+    <input type="number" id="temps_preparation" name="temps_preparation" value="{{ recette.temps_preparation }}" required>
+    
+    <label for="portions">Portions</label>
+    <input type="number" id="portions" name="portions" value="{{ recette.portions }}" required>
+    
+    <label for="difficulte">Difficulté</label>
+    <select id="difficulte" name="difficulte" required>
+        <option value="facile" {% if recette.difficulte == 'facile' %}selected{% endif %}>Facile</option>
+        <option value="moyen" {% if recette.difficulte == 'moyen' %}selected{% endif %}>Moyen</option>
+        <option value="difficile" {% if recette.difficulte == 'difficile' %}selected{% endif %}>Difficile</option>
+    </select>
+    
+    <label for="ingredients">Ingrédients</label>
+    <textarea id="ingredients" name="ingredients" rows="5" required>{{ recette.ingredients }}</textarea>
+    
+    <label for="etapes">Étapes</label>
+    <textarea id="etapes" name="etapes" rows="5" required>{{ recette.etapes }}</textarea>
+    
+    <label for="ustensiles">Ustensiles</label>
+    <textarea id="ustensiles" name="ustensiles" rows="3">{{ recette.ustensiles }}</textarea>
+    
+    <label for="image">Image</label>
+    <input type="file" id="image" name="image" accept="image/*">
+    
+    <button type="submit" class="btn">Enregistrer les modifications</button>
+</form>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'recipes/base.html' %}
+
+{% block title %}Connexion - Mijotons{% endblock %}
+
+{% block content %}
+<h2>Se connecter</h2>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Se connecter</button>
+    </form>
+    <p>Pas encore de compte ? <a href="{% url 'inscription' %}">S'inscrire</a></p>
+</div>
+{% endblock %}
