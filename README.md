@@ -29,13 +29,13 @@ Il est fortement recommandé d'isoler les dépendances du projet.
 
 # Sur Windows
 ```bash
-python -m venv venv
+python -m venv django
 venv\Scripts\activate
 ```
 
 # Sur macOS/Linux
 ```bash
-python3 -m venv venv
+python3 -m venv django
 source venv/bin/activate
 ```
 
