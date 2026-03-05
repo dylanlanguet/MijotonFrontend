@@ -10,22 +10,71 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# ===========================================
+# Integration HashiCorp Vault
+# ===========================================
+
+def get_vault_secrets(path):
+    """
+    Lit les secrets depuis HashiCorp Vault.
+    Retourne un dict de secrets, ou un dict vide si Vault est indisponible.
+    Fallback : variables d'environnement → valeurs par defaut.
+    """
+    if os.environ.get('VAULT_ENABLED', 'false').lower() != 'true':
+        return {}
+    try:
+        import hvac
+        client = hvac.Client(
+            url=os.environ.get('VAULT_ADDR', 'http://localhost:8200'),
+            token=os.environ.get('VAULT_TOKEN', 'dev-root-token'),
+        )
+        response = client.secrets.kv.v2.read_secret_version(
+            path=path,
+            mount_point='secret',
+        )
+        return response['data']['data']
+    except Exception:
+        return {}
+
+
+# Chargement des secrets Vault (cache par path)
+_vault_django = get_vault_secrets('mijoton/django')
+_vault_oidc = get_vault_secrets('mijoton/oidc')
+
+
+# ===========================================
+# Configuration Django
+# ===========================================
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ne=u#x@7@hlu^h6@9ophk3f1*6+sw!wl$(4%vo-bhv((n8w-2&'
+SECRET_KEY = (
+    _vault_django.get('secret_key')
+    or os.environ.get('DJANGO_SECRET_KEY')
+    or 'django-insecure-ne=u#x@7@hlu^h6@9ophk3f1*6+sw!wl$(4%vo-bhv((n8w-2&'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+_debug_val = (
+    _vault_django.get('debug', '')
+    or os.environ.get('DJANGO_DEBUG', 'True')
+)
+DEBUG = _debug_val.lower() in ('true', '1', 'yes') if isinstance(_debug_val, str) else bool(_debug_val)
 
-ALLOWED_HOSTS = []
+_hosts = (
+    _vault_django.get('allowed_hosts', '')
+    or os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+)
+ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()] if _hosts else []
 
 
 # Application definition
@@ -118,29 +167,45 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-import os
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+
+# ===========================================
 # Keycloak / OIDC Configuration
-OIDC_RP_CLIENT_ID = 'mijoton-frontend'
-OIDC_RP_CLIENT_SECRET = ''
+# ===========================================
+
+OIDC_RP_CLIENT_ID = (
+    _vault_oidc.get('client_id_frontend')
+    or os.environ.get('OIDC_RP_CLIENT_ID', 'mijoton-frontend')
+)
+OIDC_RP_CLIENT_SECRET = (
+    _vault_oidc.get('client_secret')
+    or os.environ.get('OIDC_RP_CLIENT_SECRET', '')
+)
 OIDC_RP_SIGN_ALGO = 'RS256'
-OIDC_OP_AUTHORIZATION_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/auth'
-OIDC_OP_TOKEN_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/token'
-OIDC_OP_USER_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/userinfo'
-OIDC_OP_JWKS_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/certs'
-OIDC_OP_LOGOUT_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/logout'
+
+# Construction des URLs OIDC depuis une base unique
+_oidc_base = (
+    _vault_oidc.get('base_url')
+    or os.environ.get('OIDC_OP_BASE_URL', 'http://localhost:8080/realms/mijoton/protocol/openid-connect')
+)
+OIDC_OP_AUTHORIZATION_ENDPOINT = f'{_oidc_base}/auth'
+OIDC_OP_TOKEN_ENDPOINT = f'{_oidc_base}/token'
+OIDC_OP_USER_ENDPOINT = f'{_oidc_base}/userinfo'
+OIDC_OP_JWKS_ENDPOINT = f'{_oidc_base}/certs'
+OIDC_OP_LOGOUT_ENDPOINT = f'{_oidc_base}/logout'
+
 OIDC_CALLBACK_URL = 'http://127.0.0.1:8000/oidc/callback/'
 OIDC_OP_TOKEN_ENDPOINT_AUTH_METHOD = 'none'
 OIDC_CREATE_UNKNOWN_USER = True
 OIDC_STORE_AUTH_STATE = True
 OIDC_VERIFY_JWT = False  # Dev only - pas de verification JWT en local
 OIDC_VERIFY_SSL = False  # Dev only - pas de SSL en local
+OIDC_USE_NONCE = False  # Dev only - pas de verification nonce en local
 
 AUTHENTICATION_BACKENDS = [
-    'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
+    'recipes.oidc.MijotonOIDCBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -150,3 +215,19 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'mozilla_django_oidc': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
