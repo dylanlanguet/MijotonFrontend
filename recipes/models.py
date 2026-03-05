@@ -2,21 +2,20 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Categorie(models.Model):
-    nom = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.nom
-
-
 class Recette(models.Model):
+    class Categorie(models.TextChoices):
+        ENTREE = 'entree', 'Entrée'
+        PLAT = 'plat', 'Plat'
+        DESSERT = 'dessert', 'Dessert'
+        COCKTAIL = 'cocktail', 'Cocktail'
+
     DIFFICULTE_CHOICES = [
         ('facile', 'Facile'),
         ('moyen', 'Moyen'),
         ('difficile', 'Difficile'),
     ]
     titre = models.CharField(max_length=200)
-    categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE)
+    categorie = models.CharField(max_length=20, choices=Categorie.choices)
     temps_preparation = models.IntegerField(help_text="Temps en minutes")
     image = models.ImageField(upload_to='recettes/', blank=True, null=True)
     ingredients = models.TextField()

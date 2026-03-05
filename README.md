@@ -29,14 +29,14 @@ Il est fortement recommandé d'isoler les dépendances du projet.
 
 # Sur Windows
 ```bash
-python -m venv venv
-venv\Scripts\activate
+python -m venv Django
+Django\Scripts\activate
 ```
 
 # Sur macOS/Linux
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv Django
+source Django/bin/activate
 ```
 
 ### 3. Installer les dépendances

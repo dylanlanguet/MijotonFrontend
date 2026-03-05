@@ -12,7 +12,7 @@
     
     <h1>{{ recette.titre }}</h1>
     <p>
-        <span class="badge">{{ recette.categorie.nom }}</span>
+        <span class="badge">{{ recette.get_categorie_display }}</span>
         <span>Temps de préparation: {{ recette.temps_preparation }} min</span> |
         <span>Portions: {{ recette.portions }}</span> |
         <span>Difficulté: {{ recette.get_difficulte_display }}</span> |

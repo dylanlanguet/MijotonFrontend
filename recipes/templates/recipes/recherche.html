@@ -11,7 +11,7 @@
         <select name="categorie" style="margin-bottom: 0; width: auto;">
             <option value="">Toutes les catégories</option>
             {% for cat in categories %}
-                <option value="{{ cat.id }}" {% if categorie_selected == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nom }}</option>
+                <option value="{{ cat.0 }}" {% if categorie_selected == cat.0 %}selected{% endif %}>{{ cat.1 }}</option>
             {% endfor %}
         </select>
         <select name="tri" style="margin-bottom: 0; width: auto;">
@@ -38,7 +38,7 @@
                     <div style="width: 100%; height: 200px; background: #ddd; display: flex; align-items: center; justify-content: center; color: #666;">Pas d'image</div>
                 {% endif %}
                     <div class="recette-card-content">
-                        <span class="badge">{{ recette.categorie.nom }}</span>
+                        <span class="badge">{{ recette.get_categorie_display }}</span>
                         <h3><a href="{% url 'detail_recette' recette.pk %}" style="color: #333; text-decoration: none;">{{ recette.titre }}</a></h3>
                         <p>Temps: {{ recette.temps_preparation }} min</p>
                     </div>

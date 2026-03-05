@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mozilla_django_oidc',
     'recipes',
 ]
 
@@ -121,3 +122,31 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Keycloak / OIDC Configuration
+OIDC_RP_CLIENT_ID = 'mijoton-frontend'
+OIDC_RP_CLIENT_SECRET = ''
+OIDC_RP_SIGN_ALGO = 'RS256'
+OIDC_OP_AUTHORIZATION_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/auth'
+OIDC_OP_TOKEN_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/token'
+OIDC_OP_USER_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/userinfo'
+OIDC_OP_JWKS_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/certs'
+OIDC_OP_LOGOUT_ENDPOINT = 'http://localhost:8080/realms/mijoton/protocol/openid-connect/logout'
+OIDC_CALLBACK_URL = 'http://127.0.0.1:8000/oidc/callback/'
+OIDC_OP_TOKEN_ENDPOINT_AUTH_METHOD = 'none'
+OIDC_CREATE_UNKNOWN_USER = True
+OIDC_STORE_AUTH_STATE = True
+OIDC_VERIFY_JWT = False  # Dev only - pas de verification JWT en local
+OIDC_VERIFY_SSL = False  # Dev only - pas de SSL en local
+
+AUTHENTICATION_BACKENDS = [
+    'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Redirections d'authentification
+LOGIN_URL = '/connexion/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
